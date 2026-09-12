@@ -69,7 +69,7 @@ export async function createApp(options={}){
    const decoded=decodeURIComponent(route);const rel=decoded==='/'?'index.html':decoded.replace(/^\/+/, '');
    if(rel.split('/').some(x=>x.startsWith('.'))||rel.includes('\\'))throw fail(404,'Страница не найдена.');
    const file=path.resolve(root,'dist',rel);if(!file.startsWith(path.join(root,'dist')+path.sep))throw fail(404,'Страница не найдена.');
-   const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.mp4':'video/mp4'};
+   const types={'.html':'text/html; charset=utf-8','.css':'text/css; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml','.otf':'font/otf','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.mp4':'video/mp4'};
    const meta=await stat(file);if(!meta.isFile())throw fail(404,'Страница не найдена.');
    res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream','Cache-Control':'no-cache','Content-Security-Policy':"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' https: data: blob:; media-src 'self' https: blob:; connect-src 'self' https:; frame-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"});
    res.end(req.method==='HEAD'?undefined:await readFile(file));
