@@ -18,12 +18,10 @@ window.addEventListener('resize', () => {
 });
 
 const progress = document.querySelector('.scroll-progress');
-const header = document.querySelector('.site-header');
 const updateProgress = () => {
   const total = document.documentElement.scrollHeight - innerHeight;
   const value = total > 0 ? Math.min(100, scrollY / total * 100) : 0;
   progress?.style.setProperty('--scroll', value + '%');
-  header?.classList.toggle('is-scrolled', scrollY > 24);
 };
 addEventListener('scroll', updateProgress, {passive:true});
 updateProgress();
@@ -50,14 +48,14 @@ document.querySelectorAll('[data-filter]').forEach(button => button.addEventList
     item.setAttribute('aria-pressed', String(active));
   });
   let count = 0;
-  document.querySelectorAll('.program-row').forEach((row, index) => {
-    const show = filter === 'all' || row.dataset.category === filter;
-    row.hidden = !show;
+  document.querySelectorAll('.program-card').forEach((card, index) => {
+    const show = filter === 'all' || card.dataset.category === filter;
+    card.hidden = !show;
     if (show) {
       count++;
-      row.classList.remove('is-visible');
-      row.style.setProperty('--delay', Math.min(index, 4) * 35 + 'ms');
-      requestAnimationFrame(() => row.classList.add('is-visible'));
+      card.classList.remove('is-visible');
+      card.style.setProperty('--delay', Math.min(index, 4) * 45 + 'ms');
+      requestAnimationFrame(() => card.classList.add('is-visible'));
     }
   });
   const empty = document.querySelector('.empty-state');
