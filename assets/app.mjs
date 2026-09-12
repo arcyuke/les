@@ -74,7 +74,8 @@ if (bookingForm) {
   date.min = new Intl.DateTimeFormat('en-CA', {timeZone:'Asia/Novosibirsk', year:'numeric', month:'2-digit', day:'2-digit'}).format(new Date());
   const selected = new URL(location.href).searchParams.get('program');
   if (selected) bookingForm.elements.program.value = selected;
-  let key = crypto.randomUUID();
+  const makeKey = () => typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  let key = makeKey();
   let available = false;
   let blocked = [];
   const checkDate = () => {
@@ -115,7 +116,7 @@ if (bookingForm) {
       if (!response.ok) throw new Error(result.error || config.labels.errorText);
       message.textContent = `${config.labels.successTitle} № ${result.id}. ${config.labels.successText}`;
       bookingForm.reset();
-      key = crypto.randomUUID();
+      key = makeKey();
       message.focus();
     } catch (error) {
       message.textContent = error.message || config.labels.errorText;
