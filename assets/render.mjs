@@ -66,14 +66,6 @@ function hero(content) {
   </section>`;
 }
 
-function intro(content) {
-  return `<section class="intro reveal" id="about">
-    <p class="eyebrow">${esc(content.home.introLabel)}</p>
-    <h2>${esc(content.home.introTitle)}</h2>
-    <p>${esc(content.home.introText)}</p>
-  </section>`;
-}
-
 function programs(content) {
   const all = visible(content.programs);
   const featured = all.filter(item => item.featured).slice(0, 3);
@@ -179,7 +171,7 @@ function footer(content) {
 }
 
 function home(content) {
-  return `${hero(content)}${intro(content)}${programs(content)}${places(content)}${mediaStrip(content)}${reviews(content)}${contact(content)}`;
+  return `${hero(content)}${programs(content)}${places(content)}${mediaStrip(content)}${reviews(content)}${contact(content)}`;
 }
 
 function privacy(content) {
