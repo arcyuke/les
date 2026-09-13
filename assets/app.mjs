@@ -72,7 +72,7 @@ if (bookingForm) {
 
   for (const name of ['date', 'venue']) bookingForm.elements[name].addEventListener('change', checkDate);
 
-  fetch(base + '/api/status', {cache:'no-store'})
+  if (base || !location.hostname.endsWith('.github.io')) fetch(base + '/api/status', {cache:'no-store'})
     .then(response => response.ok ? response.json() : Promise.reject())
     .then(async status => {
       available = status.bookingsEnabled && config.privacyReady;

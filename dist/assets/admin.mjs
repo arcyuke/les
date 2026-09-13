@@ -1,4 +1,4 @@
-import {layout,pages,filenames,esc,safeUrl} from './render.mjs?v=20260913a';
+import {layout,pages,filenames,esc,safeUrl} from './render.mjs?v=20260913b';
 const $=s=>document.querySelector(s);
 let token='',data=null,baseline='',section='home',dirty=false;
 const repository='arcyuke/les',branch='main',contentPath='dist/data/content.json';
