@@ -1,25 +1,6 @@
 export const pages = ['home', 'about', 'services', 'venues', 'reviews', 'contacts', 'booking', 'privacy'];
-
-export const filenames = {
-  home: 'index.html',
-  about: 'about.html',
-  services: 'services.html',
-  venues: 'venues.html',
-  reviews: 'reviews.html',
-  contacts: 'contacts.html',
-  booking: 'booking.html',
-  privacy: 'privacy.html'
-};
-
-const redirects = {
-  about: 'index.html#about',
-  services: 'index.html#programs',
-  venues: 'index.html#places',
-  reviews: 'index.html#reviews',
-  contacts: 'index.html#contact',
-  booking: 'index.html#request'
-};
-
+export const filenames = {home:'index.html',about:'about.html',services:'services.html',venues:'venues.html',reviews:'reviews.html',contacts:'contacts.html',booking:'booking.html',privacy:'privacy.html'};
+const version = '20260913a';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
@@ -44,102 +25,70 @@ function optionalImage(src, alt, className, caption = '', eager = false) {
   return `<figure class="${className}"><img src="${safeUrl(src)}" alt="${esc(alt)}" ${eager ? 'fetchpriority="high"' : 'loading="lazy"'} decoding="async" width="1440" height="960">${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
 }
 
-function hero(content) {
-  const home = content.home;
-  const heroArt = home.image
-    ? optionalImage(home.image, home.imageAlt, 'hero-photo', home.imageCaption, true)
-    : `<div class="hero-type" aria-hidden="true"><span>Л</span><span>Е</span><span>С</span></div>`;
-  return `<section class="landing-hero" aria-labelledby="hero-title">
-    <div class="hero-copy hero-enter">
-      <p class="eyebrow">${esc(home.eyebrow)}</p>
-      <h1 id="hero-title">${esc(home.title)}${home.titleAccent ? `<em>${esc(home.titleAccent)}</em>` : ''}</h1>
-      <p class="hero-lead">${esc(home.text)}</p>
-      <div class="hero-actions">
-        ${requestLink(content.ui.contact)}
-        <a class="line-link" href="${safeUrl(content.brand.phoneHref)}"><span>${esc(content.brand.phone)}</span></a>
-      </div>
-    </div>
-    <div class="hero-art hero-enter" style="--delay:120ms">${heroArt}</div>
-    <div class="hero-facts hero-enter" style="--delay:220ms" aria-label="Коротко о площадках">
-      ${home.stats.map(stat => `<div><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}
-    </div>
-  </section>`;
-}
 
-function programs(content) {
-  const all = visible(content.programs);
-  const featured = all.filter(item => item.featured).slice(0, 3);
-  const selected = featured.length ? featured : all.slice(0, 3);
-  return `<section class="landing-section" id="programs">
-    <header class="section-title reveal">
-      <p class="eyebrow">${esc(content.home.programsLabel)}</p>
-      <h2>${esc(content.home.programsTitle)}</h2>
-    </header>
-    <div class="program-list">
-      ${selected.map((program, index) => `<article class="program-row reveal" style="--delay:${index * 65}ms">${optionalImage(program.image, program.imageAlt, 'program-image')}
-        <div class="program-name"><small>${esc(program.tag || program.category)}</small><h3>${esc(program.title)}</h3></div>
-        <div class="program-price"><small>${esc(content.ui.price)}</small><strong>${esc(program.price || content.ui.priceUnknown)}</strong></div>
-        ${requestLink(content.ui.book, 'row-link', program.id)}
-      </article>`).join('')}
-    </div>
-    <div class="section-action reveal">${requestLink(content.ui.allPrograms, 'line-link')}</div>
-  </section>`;
+const pageLink = (page, text, className='line-link') => `<a class="${className}" href="${filenames[page]}"><span>${esc(text)}</span><b aria-hidden="true">↗</b></a>`;
+const sectionHeading = (label, title, link='') => `<header class="section-heading"><div><p class="eyebrow">${esc(label)}</p><h2>${esc(title)}</h2></div>${link}</header>`;
+const facts = content => `<div class="facts">${content.home.stats.map(stat=>`<div><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}</div>`;
+function hero(c) {
+  return `<section class="hero"><div class="wrap hero-grid"><div class="hero-copy"><p class="eyebrow">${esc(c.home.eyebrow)}</p><h1>${esc(c.home.title)}<em>${esc(c.home.titleAccent)}</em></h1><p class="hero-lead">${esc(c.home.text)}</p><div class="actions">${requestLink(c.ui.contact)}${pageLink('services',c.ui.programs)}</div></div><div class="hero-visual ${c.home.image?'has-photo':''}">${c.home.image?optionalImage(c.home.image,c.home.imageAlt,'hero-photo','',true):`<div class="hero-lettering" aria-hidden="true">${esc(c.brand.name)}</div><p class="hero-note">${esc(c.home.imageCaption)}</p><div class="hero-stamp">${esc(c.home.stamp)}</div>`}</div></div></section><div class="wrap facts-wrap">${facts(c)}</div>`;
 }
-
-function places(content) {
-  return `<section class="landing-section" id="places">
-    <header class="section-title reveal">
-      <p class="eyebrow">${esc(content.home.venuesLabel)}</p>
-      <h2>${esc(content.home.venuesTitle)}</h2>
-    </header>
-    <div class="place-list">
-      ${visible(content.venues).map((venue, index) => `<article class="place reveal" style="--delay:${index * 70}ms">${optionalImage(venue.image, venue.imageAlt, 'place-image')}
-        <div><small>${esc(venue.district)}</small><h3>${esc(venue.name)}</h3><p>${esc(venue.address)}</p></div>
-        ${externalLink(venue.mapUrl, content.ui.map)}
-      </article>`).join('')}
-    </div>
-  </section>`;
+function programItem(p,c,featured=false) {
+  return `<article class="program ${featured?'program-featured':''}" data-category="${esc(p.category)}" id="${esc(p.id)}">${optionalImage(p.image,p.imageAlt,'program-image')}<div class="program-content"><p class="program-tag">${esc(p.tag||p.category)}</p><h3>${esc(p.title)}</h3>${p.description?`<p class="program-description">${esc(p.description)}</p>`:''}<div class="program-bottom"><div class="program-price"><strong>${esc(p.price||c.ui.priceUnknown)}</strong>${p.unit?`<small>${esc(p.unit)}</small>`:''}</div>${requestLink(c.ui.book,'line-link',p.id)}</div></div></article>`;
 }
-
-function mediaStrip(content) {
-  const gallery = content.home.gallery || [];
-  const videos = visible(content.videos.items);
-  if (!gallery.length && !videos.length) return '';
-  return `<section class="landing-section media-section">
-    <header class="section-title reveal"><p class="eyebrow">${esc(content.ui.gallery)}</p><h2>${esc(content.home.galleryTitle || content.videos.title)}</h2></header>
-    ${gallery.length ? `<div class="gallery-strip">${gallery.map((item, index) => optionalImage(item.image, item.alt, `gallery-image reveal delay-${Math.min(index, 3)}`)).join('')}</div>` : ''}
-    ${videos.length ? `<div class="video-strip">${videos.map((video, index) => `<article class="reveal" style="--delay:${index * 70}ms"><video controls playsinline preload="metadata" ${video.poster ? `poster="${safeUrl(video.poster)}"` : ''} src="${safeUrl(video.url)}"></video><p>${esc(video.title)}</p></article>`).join('')}</div>` : ''}
-  </section>`;
+function programs(c) {
+ const all=visible(c.programs), chosen=all.filter(p=>p.featured).slice(0,3);
+ return `<section class="wrap section" id="programs">${sectionHeading(c.home.programsLabel,c.home.programsTitle,pageLink('services',c.ui.allPrograms))}<div class="featured-grid">${(chosen.length?chosen:all.slice(0,3)).map(p=>programItem(p,c,true)).join('')}</div></section>`;
 }
-
-function reviews(content) {
-  const items = visible(content.reviews.items).slice(0, 2);
-  if (!items.length) return '';
-  return `<section class="landing-section reviews" id="reviews">
-    <header class="section-title reveal"><p class="eyebrow">${esc(content.reviews.eyebrow)}</p><h2>${esc(content.reviews.title)} ${esc(content.reviews.titleAccent)}</h2></header>
-    <div class="review-list">${items.map((item, index) => `<blockquote class="reveal" style="--delay:${index * 70}ms"><p>${esc(item.text)}</p><footer>${esc(item.name)}${item.date ? ` · ${esc(item.date)}` : ''}</footer></blockquote>`).join('')}</div>
-    <div class="section-action reveal">${externalLink(content.brand.vk, content.reviews.linkText)}</div>
-  </section>`;
+function venueItem(v,c,detail=false) {
+ return `<article class="venue" id="${esc(v.id)}">${optionalImage(v.image,v.imageAlt,'venue-image')}<div class="venue-copy"><p class="eyebrow">${esc(v.district)}</p><h3>${esc(v.name)}</h3><p>${esc(v.address)}</p>${detail?`<p class="venue-description">${esc(v.description)}</p>`:''}<div class="venue-actions">${externalLink(v.mapUrl,c.ui.map)}${detail?requestLink(c.ui.contact,'line-link'):''}</div></div></article>`;
 }
-
-function contact(content) {
-  return `<section class="contact reveal" id="contact">
-    <p class="eyebrow">${esc(content.home.ctaLabel)}</p>
-    <h2>${esc(content.home.ctaTitle)}</h2>
-    <p>${esc(content.home.ctaText)}</p>
-    <div class="contact-actions">${requestLink(content.ui.contact)}${externalLink(content.brand.vk, content.ui.vk, 'action action-quiet')}</div>
-    <div class="contact-line">
-      <a href="${safeUrl(content.brand.phoneHref)}">${esc(content.brand.phone)}</a>
-      <a href="${safeUrl(content.brand.phone2Href)}">${esc(content.brand.phone2)}</a>
-      <span>${esc(content.brand.city)}</span>
-    </div>
-  </section>`;
+function places(c) {
+ return `<section class="places-band" id="places"><div class="wrap">${sectionHeading(c.home.venuesLabel,c.home.venuesTitle,pageLink('venues',c.ui.venueDetails))}<div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c)).join('')}</div></div></section>`;
 }
-
+function media(c,compact=false) {
+ const gallery=[...(c.home.gallery||[]),...(c.about.gallery||[])].filter(p=>p.image), videos=visible(c.videos.items);
+ if(!gallery.length&&!videos.length)return '';
+ return `<section class="wrap section" id="media">${sectionHeading(c.ui.gallery,c.home.galleryTitle)}${gallery.length?`<div class="gallery-grid">${(compact?gallery.slice(0,3):gallery).map((item,i)=>`<button class="gallery-open" type="button" data-image-open="${safeUrl(item.image)}" data-image-alt="${esc(item.alt)}" aria-label="${esc(c.ui.openPhoto)} ${i+1}">${optionalImage(item.image,item.alt,'gallery-image')}</button>`).join('')}</div>`:''}${videos.length?`<div class="video-grid">${(compact?videos.slice(0,1):videos).map(v=>`<article>${/\.(mp4|webm|mov)(?:[?#]|$)/i.test(v.url)?`<video controls playsinline preload="metadata" ${v.poster?`poster="${safeUrl(v.poster)}"`:''} src="${safeUrl(v.url)}"></video>`:`${optionalImage(v.poster,v.title,'video-poster')}${externalLink(v.url,c.ui.watchVideo)}`}<h3>${esc(v.title)}</h3></article>`).join('')}</div>`:''}${compact?pageLink('about',c.ui.allMedia):''}</section>`;
+}
+function reviewItems(c,compact=false) {
+ let items=visible(c.reviews.items);if(compact)items=items.slice(0,2);
+ return items.length?`<div class="review-grid">${items.map(v=>`<blockquote><p>${esc(v.text)}</p><footer><strong>${esc(v.name)}</strong>${v.date?`<span>${esc(v.date)}</span>`:''}${v.url?externalLink(v.url,c.ui.reviewSource):''}</footer></blockquote>`).join('')}</div>`:'';
+}
+function reviewsTeaser(c) {
+ return `<section class="wrap reviews-teaser" id="reviews"><div><p class="eyebrow">${esc(c.reviews.eyebrow)}</p><h2>${esc(c.home.reviewsTitle)}</h2></div><div><p>${esc(c.home.reviewsText)}</p>${pageLink('reviews',c.ui.nav.reviews)}</div></section>`;
+}
+function contact(c) {
+ return `<section class="contact-band" id="contact"><div class="wrap contact-grid"><div><p class="eyebrow">${esc(c.home.ctaLabel)}</p><h2>${esc(c.home.ctaTitle)}</h2></div><div><p>${esc(c.home.ctaText)}</p><div class="actions">${requestLink(c.ui.contact)}${externalLink(c.brand.vk,c.ui.vk)}</div></div></div></section>`;
+}
+function pageIntro(c,section) {
+ const s=c[section];return `<header class="page-intro wrap"><p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)} <em>${esc(s.titleAccent)}</em></h1><p>${esc(s.text)}</p></header>`;
+}
+function faqs(c) {
+ return `<section class="wrap section faq">${sectionHeading('',c.services.faqTitle)}<div>${c.services.faqs.map(f=>`<details><summary>${esc(f.question)}<span aria-hidden="true">+</span></summary><p>${esc(f.answer)}</p></details>`).join('')}</div></section>`;
+}
+function catalog(c) {
+ const categories=[...new Set([...c.services.filters,...visible(c.programs).map(p=>p.category)])];
+ return `${pageIntro(c,'services')}<section class="wrap catalog"><div class="filter-bar" role="group" aria-label="${esc(c.ui.filterLabel)}"><button type="button" class="filter active" data-filter="" aria-pressed="true">${esc(c.ui.all)}</button>${categories.map(s=>`<button type="button" class="filter" data-filter="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div><div class="catalog-grid">${visible(c.programs).map(p=>programItem(p,c)).join('')}</div><p class="catalog-empty" role="status" hidden>${esc(c.ui.empty)}</p><p class="price-note">${esc(c.services.priceNote)}</p></section>${faqs(c)}${contact(c)}`;
+}
+function about(c) {
+ return `${pageIntro(c,'about')}<section class="wrap about-section">${optionalImage(c.about.image,c.about.imageAlt,'about-image')}<div class="about-story"><h2>${esc(c.about.storyTitle)}</h2><p>${esc(c.about.storyText)}</p></div><div class="values-grid">${c.about.values.map(v=>`<article><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}</div></section>${media(c)}${contact(c)}`;
+}
+function venues(c) {
+ return `${pageIntro(c,'venuesPage')}<section class="wrap venues-detail"><div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c,true)).join('')}</div><div class="equipment"><h2>${esc(c.venuesPage.equipmentTitle)}</h2><div><ul>${c.venuesPage.equipment.map(v=>`<li>${esc(v)}</li>`).join('')}</ul><p>${esc(c.venuesPage.equipmentNote)}</p></div></div></section>${contact(c)}`;
+}
+function reviews(c) {
+ return `${pageIntro(c,'reviews')}<section class="wrap reviews-page">${reviewItems(c)}<div class="community-link"><p>${esc(c.reviews.empty)}</p>${externalLink(c.brand.vk,c.reviews.linkText,'action action-primary')}</div></section>${contact(c)}`;
+}
+function contacts(c) {
+ return `${pageIntro(c,'contacts')}<section class="wrap contacts-page"><div class="contact-details"><div><p class="eyebrow">${esc(c.contacts.phoneLabel)}</p><a class="contact-phone" href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a><a class="contact-phone" href="${safeUrl(c.brand.phone2Href)}">${esc(c.brand.phone2)}</a></div><div><p class="eyebrow">${esc(c.contacts.vkLabel)}</p>${externalLink(c.brand.vk,c.ui.vk)}<p>${esc(c.contacts.vkText)}</p></div><div><h2>${esc(c.contacts.checklistTitle)}</h2><ul>${c.contacts.checklist.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${requestLink(c.ui.contact)}</div></div>${sectionHeading('',c.contacts.locationTitle)}<div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c)).join('')}</div></section>`;
+}
+function privacy(c) {
+ return `${pageIntro(c,'privacy')}<section class="wrap legal">${c.privacy.operator?`<p class="operator">${esc(c.privacy.operator)}</p>`:''}${c.privacy.sections.map(v=>`<article><h2>${esc(v.title)}</h2><p>${esc(v.text)}</p></article>`).join('')}</section>`;
+}
 function requestDialog(content) {
   const booking = content.booking;
   return `<dialog class="request-dialog" id="request-dialog" aria-labelledby="request-title">
-    <button class="dialog-close" type="button" data-request-close aria-label="${esc(content.ui.close)}">Закрыть <span aria-hidden="true">×</span></button>
+    <button class="dialog-close" type="button" data-request-close aria-label="${esc(content.ui.close)}">${esc(content.ui.close)} <span aria-hidden="true">×</span></button>
     <div class="dialog-layout">
       <header class="dialog-intro"><p class="eyebrow">${esc(booking.eyebrow)}</p><h2 id="request-title">${esc(booking.title)} ${esc(booking.titleAccent)}</h2><p>${esc(booking.text)}</p><div><a href="${safeUrl(content.brand.phoneHref)}">${esc(content.brand.phone)}</a><a href="${safeUrl(content.brand.phone2Href)}">${esc(content.brand.phone2)}</a></div></header>
       <form id="booking-form" class="booking-form">
@@ -162,46 +111,19 @@ function requestDialog(content) {
   </dialog>`;
 }
 
-function footer(content) {
-  return `<footer class="site-footer">
-    <a class="footer-brand" href="index.html">${esc(content.brand.name)}</a>
-    <div class="footer-links"><a href="${safeUrl(content.brand.phoneHref)}">${esc(content.brand.phone)}</a><a href="${safeUrl(content.brand.vk)}" target="_blank" rel="noopener noreferrer">ВКонтакте ↗</a><a href="privacy.html">${esc(content.ui.privacy)}</a></div>
-    <div class="footer-bottom"><span>© ${new Date().getFullYear()} ${esc(content.brand.copyright)}</span><a class="admin-corner" href="admin.html" aria-label="Администрирование">ааа</a></div>
-  </footer>`;
-}
 
-function home(content) {
-  return `${hero(content)}${programs(content)}${places(content)}${mediaStrip(content)}${reviews(content)}${contact(content)}`;
+function header(c,page) {
+ const nav=['about','services','venues','reviews','contacts'];
+ return `<header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="${esc(c.brand.name)} — ${esc(c.ui.nav.home)}"><strong>${esc(c.brand.name)}</strong><span>${esc(c.brand.descriptor)}<small>${esc(c.brand.city)}</small></span></a><nav class="main-nav" id="main-nav" aria-label="${esc(c.ui.navigation)}">${nav.map(p=>`<a href="${filenames[p]}" ${p===page?'aria-current="page"':''}>${esc(c.ui.nav[p])}</a>`).join('')}<a class="mobile-phone" href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a></nav>${requestLink(c.ui.contact,'header-action')}<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><span>${esc(c.ui.menu)}</span><i aria-hidden="true"></i></button></div></header>`;
 }
-
-function privacy(content) {
-  return `<section class="legal"><header><p class="eyebrow">${esc(content.privacy.eyebrow)}</p><h1>${esc(content.privacy.title)} ${esc(content.privacy.titleAccent)}</h1><p>${esc(content.privacy.text)}</p></header>${content.privacy.operator ? `<p class="operator">${esc(content.privacy.operator)}</p>` : ''}<div class="legal-list">${content.privacy.sections.map((section, index) => `<article id="privacy-${index}"><h2>${esc(section.title)}</h2><p>${esc(section.text)}</p></article>`).join('')}</div></section>`;
+function footer(c) {
+ return `<footer class="site-footer"><div class="wrap"><div class="footer-top"><a class="footer-brand" href="index.html">${esc(c.brand.name)}</a><p>${esc(c.brand.footerText)}</p><div><a href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a><a href="${safeUrl(c.brand.phone2Href)}">${esc(c.brand.phone2)}</a></div><div>${externalLink(c.brand.vk,c.ui.vk)}<a href="contacts.html">${esc(c.ui.nav.contacts)}</a></div></div><div class="footer-bottom"><span>© ${new Date().getFullYear()} ${esc(c.brand.copyright)}</span><a href="privacy.html">${esc(c.ui.privacy)}</a><a class="admin-corner" href="admin.html" aria-label="${esc(c.ui.admin)}">ааа</a></div></div></footer>`;
 }
-
-function header(content, onHome = true) {
-  const prefix = onHome ? '' : 'index.html';
-  return `<header class="site-header"><a class="brand" href="index.html" aria-label="${esc(content.brand.name)} — на главную"><strong>${esc(content.brand.name)}</strong><small>${esc(content.brand.descriptor)}</small></a><nav aria-label="Основная навигация"><a href="${prefix}#programs">Программы</a><a href="${prefix}#places">Площадки</a></nav><a class="header-phone" href="${safeUrl(content.brand.phoneHref)}">${esc(content.brand.phone)}</a>${onHome ? requestLink(content.ui.contact, 'header-action') : `<a class="header-action" href="index.html#request"><span>${esc(content.ui.contact)}</span><b aria-hidden="true">↗</b></a>`}</header>`;
+export function main(c,page) {
+ const views={home:()=>`${hero(c)}${programs(c)}${places(c)}${media(c,true)}${reviewsTeaser(c)}${contact(c)}`,services:()=>catalog(c),about:()=>about(c),venues:()=>venues(c),reviews:()=>reviews(c),contacts:()=>contacts(c),privacy:()=>privacy(c),booking:()=>`${pageIntro(c,'booking')}<div class="wrap booking-page">${requestLink(c.ui.contact)}</div>${contact(c)}`};
+ return (views[page]||views.home)();
 }
-
-function shell(content, page, body) {
-  const baseTitle = 'Лес|Программы для классов|Новосибирск';
-  const title = page === 'home' ? baseTitle : `${content.ui.nav[page]} — ${baseTitle}`;
-  return `<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f0df95"><meta name="description" content="${esc(content.brand.description)}"><meta name="color-scheme" content="light"><title>${esc(title)}</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css?v=20260912d"><script type="module" src="assets/app.mjs?v=20260912d"></script></head><body data-page="${page}"><a class="skip" href="#main">${esc(content.ui.skip)}</a>${header(content, page === 'home')}<main id="main">${body}</main>${footer(content)}${page === 'home' ? requestDialog(content) : ''}</body></html>`;
-}
-
-function redirect(content, page) {
-  const target = redirects[page];
-  const title = content.ui.nav[page] || 'ЛЕС';
-  return `<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta http-equiv="refresh" content="0;url=${target}"><meta name="robots" content="noindex"><title>${esc(title)} — Лес|Программы для классов|Новосибирск</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css?v=20260912d"></head><body class="redirect"><main><h1>${esc(title)}</h1><p>Этот раздел теперь находится на короткой главной странице.</p><a class="action action-primary" href="${target}"><span>Открыть</span><b aria-hidden="true">↗</b></a></main></body></html>`;
-}
-
-export function main(content, page) {
-  if (page === 'home') return home(content);
-  if (page === 'privacy') return privacy(content);
-  return '';
-}
-
-export function layout(content, page) {
-  if (redirects[page]) return redirect(content, page);
-  return shell(content, page, main(content, page));
+export function layout(c,page) {
+ const baseTitle='Лес|Программы для классов|Новосибирск';
+ return `<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#faf8ef"><meta name="description" content="${esc(c.brand.description)}"><meta name="color-scheme" content="light"><title>${esc(page==='home'?baseTitle:c.ui.nav[page]+' — '+baseTitle)}</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css?v=${version}"><script type="module" src="assets/app.mjs?v=${version}"></script></head><body data-page="${page}"><a class="skip" href="#main">${esc(c.ui.skip)}</a>${header(c,page)}<main id="main">${main(c,page)}</main>${footer(c)}${requestDialog(c)}<dialog class="image-dialog" aria-label="${esc(c.ui.openPhoto)}"><button type="button" data-image-close aria-label="${esc(c.ui.close)}">×</button><img alt=""></dialog></body></html>`;
 }

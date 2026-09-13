@@ -1,39 +1,29 @@
-document.documentElement.classList.add('js');
-
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const reveals = document.querySelectorAll('.reveal');
-
-if ('IntersectionObserver' in window && !reducedMotion) {
-  const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      entry.target.classList.add('is-visible');
-      observer.unobserve(entry.target);
-    }
-  }, {threshold:.1, rootMargin:'0px 0px -32px'});
-  reveals.forEach(element => observer.observe(element));
-} else {
-  reveals.forEach(element => element.classList.add('is-visible'));
+const menu = document.querySelector('.menu-toggle');
+const nav = document.querySelector('#main-nav');
+function closeMenu() { menu?.setAttribute('aria-expanded','false'); nav?.classList.remove('is-open'); }
+menu?.addEventListener('click', () => { const open=menu.getAttribute('aria-expanded')!=='true'; menu.setAttribute('aria-expanded',String(open)); nav.classList.toggle('is-open',open); });
+document.addEventListener('keydown', event => { if(event.key==='Escape') closeMenu(); });
+document.addEventListener('click', event => { if(!event.target.closest('.site-header')) closeMenu(); });
+nav?.querySelectorAll('a').forEach(a=>a.addEventListener('click',closeMenu));
+const filters=document.querySelectorAll('[data-filter]');
+function filterPrograms(category) {
+ let count=0;
+ document.querySelectorAll('.catalog-grid [data-category]').forEach(p=>{p.hidden=Boolean(category&&p.dataset.category!==category);if(!p.hidden)count++;});
+ filters.forEach(b=>{const active=b.dataset.filter===category;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+ const empty=document.querySelector('.catalog-empty');if(empty)empty.hidden=count>0;
 }
-
-const heroArt = document.querySelector('.hero-art');
-if (heroArt && matchMedia('(pointer:fine)').matches && !reducedMotion) {
-  heroArt.addEventListener('pointermove', event => {
-    const box = heroArt.getBoundingClientRect();
-    heroArt.style.setProperty('--mx', ((event.clientX - box.left) / box.width - .5).toFixed(2));
-    heroArt.style.setProperty('--my', ((event.clientY - box.top) / box.height - .5).toFixed(2));
-  });
-  heroArt.addEventListener('pointerleave', () => {
-    heroArt.style.setProperty('--mx', 0);
-    heroArt.style.setProperty('--my', 0);
-  });
-}
+filters.forEach(b=>b.addEventListener('click',()=>filterPrograms(b.dataset.filter)));
+const imageDialog=document.querySelector('.image-dialog');
+document.querySelectorAll('[data-image-open]').forEach(b=>b.addEventListener('click',()=>{const img=imageDialog.querySelector('img');img.src=b.dataset.imageOpen;img.alt=b.dataset.imageAlt||'';imageDialog.showModal();}));
+document.querySelector('[data-image-close]')?.addEventListener('click',()=>imageDialog.close());
+imageDialog?.addEventListener('click',e=>{if(e.target===imageDialog)imageDialog.close();});
 
 const requestDialog = document.querySelector('#request-dialog');
 const bookingForm = document.querySelector('#booking-form');
 
 function openRequest(program = '') {
   if (!requestDialog) return;
+  closeMenu();
   if (program && bookingForm?.elements.program) bookingForm.elements.program.value = program;
   if (!requestDialog.open) requestDialog.showModal();
   history.replaceState(null, '', `${location.pathname}${location.search}#request`);
@@ -57,7 +47,8 @@ requestDialog?.addEventListener('close', () => {
   if (location.hash === '#request') history.replaceState(null, '', `${location.pathname}${location.search}`);
 });
 
-if (location.hash === '#request') openRequest();
+if (location.hash === '#request' || document.body.dataset.page === 'booking') openRequest(new URLSearchParams(location.search).get('program') || '');
+window.addEventListener('hashchange', () => { if (location.hash === '#request') openRequest(); });
 
 if (bookingForm) {
   const config = JSON.parse(document.querySelector('#booking-config').textContent);
