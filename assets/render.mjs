@@ -1,6 +1,6 @@
 export const pages = ['home', 'about', 'services', 'venues', 'reviews', 'contacts', 'booking', 'privacy'];
 export const filenames = {home:'index.html',about:'about.html',services:'services.html',venues:'venues.html',reviews:'reviews.html',contacts:'contacts.html',booking:'booking.html',privacy:'privacy.html'};
-const version = '20260913b';
+const version = '20260913c';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
@@ -28,12 +28,13 @@ function optionalImage(src, alt, className, caption = '', eager = false) {
 
 const pageLink = (page, text, className='line-link') => `<a class="${className}" href="${filenames[page]}"><span>${esc(text)}</span><b aria-hidden="true">↗</b></a>`;
 const sectionHeading = (label, title, link='') => `<header class="section-heading"><div><p class="eyebrow">${esc(label)}</p><h2>${esc(title)}</h2></div>${link}</header>`;
-const facts = content => `<div class="facts">${content.home.stats.map(stat=>`<div><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}</div>`;
+const facts = c => `<div class="fact-rotator" aria-label="${esc(c.ui.factsLabel)}"><div class="fact-slides">${c.home.stats.map((stat,i)=>`<div class="fact-slide ${i===0?'is-active':''}" ${i?'aria-hidden="true"':''}><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}</div><div class="fact-controls">${c.home.stats.map((stat,i)=>`<button type="button" class="fact-dot ${i===0?'is-active':''}" data-fact="${i}" aria-label="${esc(stat.value+' '+stat.label)}" aria-pressed="${i===0}"></button>`).join('')}<button class="fact-pause" type="button" aria-label="${esc(c.ui.pauseFacts)}" data-play-label="${esc(c.ui.playFacts)}" data-pause-label="${esc(c.ui.pauseFacts)}"><span aria-hidden="true">Ⅱ</span></button></div></div>`;
 function hero(c) {
-  return `<section class="hero"><div class="wrap hero-grid"><div class="hero-copy"><p class="eyebrow">${esc(c.home.eyebrow)}</p><h1>${esc(c.home.title)}<em>${esc(c.home.titleAccent)}</em></h1><p class="hero-lead">${esc(c.home.text)}</p><div class="actions">${requestLink(c.ui.contact)}${pageLink('services',c.ui.programs)}</div></div><div class="hero-visual ${c.home.image?'has-photo':''}">${c.home.image?optionalImage(c.home.image,c.home.imageAlt,'hero-photo','',true):`<div class="hero-lettering" aria-hidden="true">${esc(c.brand.name)}</div><p class="hero-note">${esc(c.home.imageCaption)}</p><div class="hero-stamp">${esc(c.home.stamp)}</div>`}</div></div></section><div class="wrap facts-wrap">${facts(c)}</div>`;
+  return `<section class="hero"><div class="wrap hero-grid ${c.home.image?'with-media':''}"><div class="hero-copy"><p class="eyebrow">${esc(c.home.eyebrow)}</p><h1>${esc(c.home.title)}<em>${esc(c.home.titleAccent)}</em></h1><p class="hero-lead">${esc(c.home.text)}</p><div class="actions">${requestLink(c.ui.contact)}</div></div>${c.home.image?`<div class="hero-visual has-photo">${optionalImage(c.home.image,c.home.imageAlt,'hero-photo','',true)}</div>`:''}</div></section><div class="wrap facts-wrap">${facts(c)}</div>`;
 }
 function programItem(p,c,featured=false) {
-  return `<article class="program ${featured?'program-featured':''}" data-category="${esc(p.category)}" id="${esc(p.id)}">${optionalImage(p.image,p.imageAlt,'program-image')}<div class="program-content"><p class="program-tag">${esc(p.tag||p.category)}</p><h3>${esc(p.title)}</h3>${p.description?`<p class="program-description">${esc(p.description)}</p>`:''}<div class="program-bottom"><div class="program-price"><strong>${esc(p.price||c.ui.priceUnknown)}</strong>${p.unit?`<small>${esc(p.unit)}</small>`:''}</div>${requestLink(c.ui.book,'line-link',p.id)}</div></div></article>`;
+ const title=esc(p.title).replace(/Командообразующая/g,'Командо&shy;образующая');
+ return `<article class="program ${featured?'program-featured':''}" data-category="${esc(p.category)}" id="${esc(p.id)}"><a class="program-cover ${p.image?'with-image':''}" href="#request" data-request-open data-program="${esc(p.id)}" aria-label="${esc(p.title+' — '+c.ui.contact)}">${p.image?optionalImage(p.image,p.imageAlt,'program-image'):`<span class="program-tag">${esc(p.tag||p.category)}</span><h3>${title}</h3>`}</a><div class="program-content">${p.image?`<p class="program-tag">${esc(p.tag||p.category)}</p><h3>${title}</h3>`:''}${p.description?`<p class="program-description">${esc(p.description)}</p>`:''}<div class="program-bottom"><div class="program-price"><strong>${esc(p.price||c.ui.priceUnknown)}</strong>${p.unit?`<small>${esc(p.unit)}</small>`:''}</div>${requestLink(c.ui.book,'line-link',p.id)}</div></div></article>`;
 }
 function programs(c) {
  const all=visible(c.programs), chosen=all.filter(p=>p.featured).slice(0,3);
@@ -57,9 +58,6 @@ function reviewItems(c,compact=false) {
 function reviewsTeaser(c) {
  return `<section class="wrap reviews-teaser" id="reviews"><div><p class="eyebrow">${esc(c.reviews.eyebrow)}</p><h2>${esc(c.home.reviewsTitle)}</h2></div><div><p>${esc(c.home.reviewsText)}</p>${pageLink('reviews',c.ui.nav.reviews)}</div></section>`;
 }
-function contact(c) {
- return `<section class="contact-band" id="contact"><div class="wrap contact-grid"><div><p class="eyebrow">${esc(c.home.ctaLabel)}</p><h2>${esc(c.home.ctaTitle)}</h2></div><div><p>${esc(c.home.ctaText)}</p><div class="actions">${requestLink(c.ui.contact)}${externalLink(c.brand.vk,c.ui.vk)}</div></div></div></section>`;
-}
 function pageIntro(c,section) {
  const s=c[section];return `<header class="page-intro wrap"><p class="eyebrow">${esc(s.eyebrow)}</p><h1>${esc(s.title)} <em>${esc(s.titleAccent)}</em></h1><p>${esc(s.text)}</p></header>`;
 }
@@ -68,16 +66,16 @@ function faqs(c) {
 }
 function catalog(c) {
  const categories=[...new Set([...c.services.filters,...visible(c.programs).map(p=>p.category)])];
- return `${pageIntro(c,'services')}<section class="wrap catalog"><div class="filter-bar" role="group" aria-label="${esc(c.ui.filterLabel)}"><button type="button" class="filter active" data-filter="" aria-pressed="true">${esc(c.ui.all)}</button>${categories.map(s=>`<button type="button" class="filter" data-filter="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div><div class="catalog-grid">${visible(c.programs).map(p=>programItem(p,c)).join('')}</div><p class="catalog-empty" role="status" hidden>${esc(c.ui.empty)}</p><p class="price-note">${esc(c.services.priceNote)}</p></section>${faqs(c)}${contact(c)}`;
+ return `${pageIntro(c,'services')}<section class="wrap catalog"><div class="filter-bar" role="group" aria-label="${esc(c.ui.filterLabel)}"><button type="button" class="filter active" data-filter="" aria-pressed="true">${esc(c.ui.all)}</button>${categories.map(s=>`<button type="button" class="filter" data-filter="${esc(s)}" aria-pressed="false">${esc(s)}</button>`).join('')}</div><div class="catalog-grid">${visible(c.programs).map(p=>programItem(p,c)).join('')}</div><p class="catalog-empty" role="status" hidden>${esc(c.ui.empty)}</p><p class="price-note">${esc(c.services.priceNote)}</p></section>${faqs(c)}`;
 }
 function about(c) {
- return `${pageIntro(c,'about')}<section class="wrap about-section">${optionalImage(c.about.image,c.about.imageAlt,'about-image')}<div class="about-story"><h2>${esc(c.about.storyTitle)}</h2><p>${esc(c.about.storyText)}</p></div><div class="values-grid">${c.about.values.map(v=>`<article><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}</div></section>${media(c)}${contact(c)}`;
+ return `${pageIntro(c,'about')}<section class="wrap about-section">${optionalImage(c.about.image,c.about.imageAlt,'about-image')}<div class="about-story"><h2>${esc(c.about.storyTitle)}</h2><p>${esc(c.about.storyText)}</p></div><div class="values-grid">${c.about.values.map(v=>`<article><h3>${esc(v.title)}</h3><p>${esc(v.text)}</p></article>`).join('')}</div></section>${media(c)}`;
 }
 function venues(c) {
- return `${pageIntro(c,'venuesPage')}<section class="wrap venues-detail"><div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c,true)).join('')}</div><div class="equipment"><h2>${esc(c.venuesPage.equipmentTitle)}</h2><div><ul>${c.venuesPage.equipment.map(v=>`<li>${esc(v)}</li>`).join('')}</ul><p>${esc(c.venuesPage.equipmentNote)}</p></div></div></section>${contact(c)}`;
+ return `${pageIntro(c,'venuesPage')}<section class="wrap venues-detail"><div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c,true)).join('')}</div><div class="equipment"><h2>${esc(c.venuesPage.equipmentTitle)}</h2><div><ul>${c.venuesPage.equipment.map(v=>`<li>${esc(v)}</li>`).join('')}</ul><p>${esc(c.venuesPage.equipmentNote)}</p></div></div></section>`;
 }
 function reviews(c) {
- return `${pageIntro(c,'reviews')}<section class="wrap reviews-page">${reviewItems(c)}<div class="community-link"><p>${esc(c.reviews.empty)}</p>${externalLink(c.brand.vk,c.reviews.linkText,'action action-primary')}</div></section>${contact(c)}`;
+ return `${pageIntro(c,'reviews')}<section class="wrap reviews-page">${reviewItems(c)}<div class="community-link"><p>${esc(c.reviews.empty)}</p>${externalLink(c.brand.vk,c.reviews.linkText,'action action-primary')}</div></section>`;
 }
 function contacts(c) {
  return `${pageIntro(c,'contacts')}<section class="wrap contacts-page"><div class="contact-details"><div><p class="eyebrow">${esc(c.contacts.phoneLabel)}</p><a class="contact-phone" href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a><a class="contact-phone" href="${safeUrl(c.brand.phone2Href)}">${esc(c.brand.phone2)}</a></div><div><p class="eyebrow">${esc(c.contacts.vkLabel)}</p>${externalLink(c.brand.vk,c.ui.vk)}<p>${esc(c.contacts.vkText)}</p></div><div><h2>${esc(c.contacts.checklistTitle)}</h2><ul>${c.contacts.checklist.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>${requestLink(c.ui.contact)}</div></div>${sectionHeading('',c.contacts.locationTitle)}<div class="venues-grid">${visible(c.venues).map(v=>venueItem(v,c)).join('')}</div></section>`;
@@ -91,7 +89,7 @@ function requestDialog(content) {
     <button class="dialog-close" type="button" data-request-close aria-label="${esc(content.ui.close)}">${esc(content.ui.close)} <span aria-hidden="true">×</span></button>
     <div class="dialog-layout">
       <header class="dialog-intro"><p class="eyebrow">${esc(booking.eyebrow)}</p><h2 id="request-title">${esc(booking.title)} ${esc(booking.titleAccent)}</h2><p>${esc(booking.text)}</p><div><a href="${safeUrl(content.brand.phoneHref)}">${esc(content.brand.phone)}</a><a href="${safeUrl(content.brand.phone2Href)}">${esc(content.brand.phone2)}</a></div></header>
-      <form id="booking-form" class="booking-form">
+      <form id="booking-form" class="booking-form" novalidate>
         <div class="form-grid">
           <label><span>${esc(booking.nameLabel)}</span><input name="name" autocomplete="name" maxlength="100" required></label>
           <label><span>${esc(booking.phoneLabel)}</span><input name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="25" required placeholder="+7 …"></label>
@@ -104,7 +102,7 @@ function requestDialog(content) {
         </div>
         <div class="honeypot" aria-hidden="true"><label>Website<input name="website" tabindex="-1" autocomplete="off"></label></div>
         <label class="consent"><input name="consent" type="checkbox" required><span>${esc(booking.consentLabel)}. <a href="privacy.html" target="_blank" rel="noopener noreferrer">${esc(content.ui.privacy)}</a></span></label>
-        <div class="form-submit"><button class="action action-primary" type="submit" disabled><span>${esc(booking.submitLabel)}</span><b aria-hidden="true">↗</b></button><p id="booking-status" role="status" aria-live="polite" tabindex="-1">${esc(booking.offlineText)}</p></div>
+        <div class="form-submit"><button class="action action-primary" type="submit" disabled><span>${esc(booking.submitLabel)}</span><b aria-hidden="true">↗</b></button><p id="booking-status" class="site-notice" data-kind="info" role="status" aria-live="polite" tabindex="-1">${esc(booking.offlineText)}</p></div>
       </form>
     </div>
     <script id="booking-config" type="application/json">${JSON.stringify({apiBase: content.settings.apiBase, privacyReady: content.privacy.ready, labels: booking}).replace(/</g, '\\u003c')}</script>
@@ -114,16 +112,16 @@ function requestDialog(content) {
 
 function header(c,page) {
  const nav=['about','services','venues','reviews','contacts'];
- return `<header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="${esc(c.brand.name)} — ${esc(c.ui.nav.home)}"><strong>${esc(c.brand.name)}</strong><span>${esc(c.brand.descriptor)}<small>${esc(c.brand.city)}</small></span></a><nav class="main-nav" id="main-nav" aria-label="${esc(c.ui.navigation)}">${nav.map(p=>`<a href="${filenames[p]}" ${p===page?'aria-current="page"':''}>${esc(c.ui.nav[p])}</a>`).join('')}<a class="mobile-phone" href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a></nav>${requestLink(c.ui.contact,'header-action')}<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><span>${esc(c.ui.menu)}</span><i aria-hidden="true"></i></button></div></header>`;
+ return `<header class="site-header"><div class="wrap header-inner"><a class="brand" href="index.html" aria-label="${esc(c.brand.name)} — ${esc(c.ui.nav.home)}"><strong>${esc(c.brand.name)}</strong><span>${esc(c.brand.descriptor)}<small>${esc(c.brand.city)}</small></span></a><nav class="main-nav" id="main-nav" aria-label="${esc(c.ui.navigation)}">${nav.map(p=>`<a href="${filenames[p]}" ${p===page?'aria-current="page"':''}>${esc(c.ui.nav[p])}</a>`).join('')}</nav>${requestLink(c.ui.contact,'header-action'+(page==='home'?' is-hidden':''))}<button class="menu-toggle" type="button" aria-expanded="false" aria-controls="main-nav"><span>${esc(c.ui.menu)}</span><i aria-hidden="true"></i></button></div></header>`;
 }
 function footer(c) {
  return `<footer class="site-footer"><div class="wrap"><div class="footer-top"><a class="footer-brand" href="index.html">${esc(c.brand.name)}</a><p>${esc(c.brand.footerText)}</p><div><a href="${safeUrl(c.brand.phoneHref)}">${esc(c.brand.phone)}</a><a href="${safeUrl(c.brand.phone2Href)}">${esc(c.brand.phone2)}</a></div><div>${externalLink(c.brand.vk,c.ui.vk)}<a href="contacts.html">${esc(c.ui.nav.contacts)}</a></div></div><div class="footer-bottom"><span>© ${new Date().getFullYear()} ${esc(c.brand.copyright)}</span><a href="privacy.html">${esc(c.ui.privacy)}</a><a class="admin-corner" href="admin.html" aria-label="${esc(c.ui.admin)}">ааа</a></div></div></footer>`;
 }
 export function main(c,page) {
- const views={home:()=>`${hero(c)}${programs(c)}${places(c)}${media(c,true)}${reviewsTeaser(c)}${contact(c)}`,services:()=>catalog(c),about:()=>about(c),venues:()=>venues(c),reviews:()=>reviews(c),contacts:()=>contacts(c),privacy:()=>privacy(c),booking:()=>`${pageIntro(c,'booking')}<div class="wrap booking-page">${requestLink(c.ui.contact)}</div>${contact(c)}`};
+ const views={home:()=>`${hero(c)}${programs(c)}${places(c)}${media(c,true)}${reviewsTeaser(c)}`,services:()=>catalog(c),about:()=>about(c),venues:()=>venues(c),reviews:()=>reviews(c),contacts:()=>contacts(c),privacy:()=>privacy(c),booking:()=>`${pageIntro(c,'booking')}<div class="wrap booking-page">${requestLink(c.ui.contact)}</div>`};
  return (views[page]||views.home)();
 }
 export function layout(c,page) {
  const baseTitle='Лес|Программы для классов|Новосибирск';
- return `<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#faf8ef"><meta name="description" content="${esc(c.brand.description)}"><meta name="color-scheme" content="light"><title>${esc(page==='home'?baseTitle:c.ui.nav[page]+' — '+baseTitle)}</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="stylesheet" href="assets/style.css?v=${version}"><script type="module" src="assets/app.mjs?v=${version}"></script></head><body data-page="${page}"><a class="skip" href="#main">${esc(c.ui.skip)}</a>${header(c,page)}<main id="main">${main(c,page)}</main>${footer(c)}${requestDialog(c)}<dialog class="image-dialog" aria-label="${esc(c.ui.openPhoto)}"><button type="button" data-image-close aria-label="${esc(c.ui.close)}">×</button><img alt=""></dialog></body></html>`;
+ return `<!doctype html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#faf8ef"><meta name="description" content="${esc(c.brand.description)}"><meta name="color-scheme" content="light"><title>${esc(page==='home'?baseTitle:c.ui.nav[page]+' — '+baseTitle)}</title><link rel="icon" type="image/svg+xml" href="assets/favicon.svg"><link rel="preload" as="font" type="font/ttf" href="assets/fonts/Manrope.ttf" crossorigin><link rel="stylesheet" href="assets/style.css?v=${version}"><script type="module" src="assets/app.mjs?v=${version}"></script></head><body data-page="${page}"><a class="skip" href="#main">${esc(c.ui.skip)}</a>${header(c,page)}<main id="main">${main(c,page)}</main>${footer(c)}${requestDialog(c)}<dialog class="image-dialog" aria-label="${esc(c.ui.openPhoto)}"><button type="button" data-image-close aria-label="${esc(c.ui.close)}">×</button><img alt=""></dialog></body></html>`;
 }
