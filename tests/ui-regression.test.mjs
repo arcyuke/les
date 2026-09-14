@@ -78,16 +78,15 @@ test('failed admin login keeps the editor closed and allows another login',async
  assert.equal(ids.workspace.hidden,true);assert.equal(ids.logout.hidden,true);assert.equal(ids['login-panel'].hidden,false);assert.equal(ids.login.querySelector('[type=submit]').disabled,false);assert.equal(ids['admin-status'].dataset.kind,'error');
 });
 
-test('facts autoplay despite sticky touch hover, focus, and reduced motion; manual pause still works',async()=>{
+test('facts loop automatically without controls or touch, hover, and focus interactions',async()=>{
  const {context,document,timers}=environment();const rotator=new Element();rotator.className='fact-rotator';rotator.hovered=true;document.append(rotator);
- const slides=[],dots=[];for(let i=0;i<3;i++){const slide=new Element();slide.className='fact-slide'+(i===0?' is-active':'');rotator.append(slide);slides.push(slide);const dot=new Element('button');dot.dataset.fact=String(i);rotator.append(dot);dots.push(dot);}
- const pause=new Element('button');pause.className='fact-pause';pause.dataset.playLabel='Продолжить';pause.dataset.pauseLabel='Пауза';pause.append(new Element('span'));rotator.append(pause);document.activeElement=dots[0];
+ const slides=[];for(let i=0;i<3;i++){const slide=new Element();slide.className='fact-slide'+(i===0?' is-active':'');rotator.append(slide);slides.push(slide);}
+ document.activeElement=rotator;
  await load('app.mjs',context);
  const tick=()=>{for(const timer of [...timers.values()])timer();};
  assert.equal(timers.size,1);tick();assert.ok(slides[1].classList.contains('is-active'));tick();assert.ok(slides[2].classList.contains('is-active'));tick();assert.ok(slides[0].classList.contains('is-active'));
- await dots[1].emit('click');tick();assert.ok(slides[2].classList.contains('is-active'));
- await pause.emit('click');assert.equal(timers.size,0);assert.equal(pause.getAttribute('aria-pressed'),'true');tick();assert.ok(slides[2].classList.contains('is-active'));
- await pause.emit('click');tick();assert.ok(slides[0].classList.contains('is-active'));
- document.hidden=true;tick();assert.ok(slides[0].classList.contains('is-active'));document.hidden=false;tick();assert.ok(slides[1].classList.contains('is-active'));
- rotator.rect={top:1000,bottom:1100};tick();assert.ok(slides[1].classList.contains('is-active'));rotator.rect={top:200,bottom:300};tick();assert.ok(slides[2].classList.contains('is-active'));
+ await rotator.emit('click');await rotator.emit('touchstart');await rotator.emit('pointerdown');tick();assert.ok(slides[1].classList.contains('is-active'));
+ document.hidden=true;tick();assert.ok(slides[1].classList.contains('is-active'));document.hidden=false;tick();assert.ok(slides[2].classList.contains('is-active'));
+ rotator.rect={top:1000,bottom:1100};tick();assert.ok(slides[2].classList.contains('is-active'));rotator.rect={top:200,bottom:300};tick();assert.ok(slides[0].classList.contains('is-active'));
+ const html=layout(content,'home');assert.ok(!/fact-(pause|dot|controls)/.test(html));assert.ok(!html.includes('data-fact='));
 });

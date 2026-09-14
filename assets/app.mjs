@@ -1,4 +1,4 @@
-import {setNotice,busy,validateForm,clearFieldError} from './ui.mjs?v=20260914a';
+import {setNotice,busy,validateForm,clearFieldError} from './ui.mjs?v=20260914b';
 const menu=document.querySelector('.menu-toggle');
 const nav=document.querySelector('#main-nav');
 function closeMenu(){menu?.setAttribute('aria-expanded','false');nav?.classList.remove('is-open');}
@@ -29,15 +29,14 @@ document.fonts?.ready.then(scheduleHeader);updateHeaderAction();
 
 const rotator=document.querySelector('.fact-rotator');
 if(rotator){
- const slides=[...rotator.querySelectorAll('.fact-slide')],dots=[...rotator.querySelectorAll('[data-fact]')],pause=rotator.querySelector('.fact-pause');
- let current=0,paused=false,timer;
- function showFact(index){current=index;slides.forEach((slide,i)=>{slide.classList.toggle('is-active',i===index);slide.setAttribute('aria-hidden',String(i!==index));});dots.forEach((dot,i)=>{dot.classList.toggle('is-active',i===index);dot.setAttribute('aria-pressed',String(i===index));});}
- function updatePause(){pause.setAttribute('aria-label',paused?pause.dataset.playLabel:pause.dataset.pauseLabel);pause.querySelector('span').textContent=paused?'▷':'Ⅱ';pause.setAttribute('aria-pressed',String(paused));}
- function start(){clearInterval(timer);if(paused||slides.length<2)return;timer=setInterval(()=>{const r=rotator.getBoundingClientRect();if(!document.hidden&&r.bottom>0&&r.top<innerHeight)showFact((current+1)%slides.length);},4000);}
- dots.forEach((dot,i)=>dot.addEventListener('click',()=>{showFact(i);start();}));
- pause.addEventListener('click',()=>{paused=!paused;updatePause();start();});
- if(slides.length<2)rotator.querySelector('.fact-controls').hidden=true;
- updatePause();start();
+ const slides=[...rotator.querySelectorAll('.fact-slide')];
+ let current=0;
+ if(slides.length>1)setInterval(()=>{
+  const r=rotator.getBoundingClientRect();
+  if(document.hidden||r.bottom<=0||r.top>=innerHeight)return;
+  current=(current+1)%slides.length;
+  slides.forEach((slide,i)=>{slide.classList.toggle('is-active',i===current);slide.setAttribute('aria-hidden',String(i!==current));});
+ },4000);
 }
 
 const filters=document.querySelectorAll('[data-filter]');

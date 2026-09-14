@@ -1,6 +1,6 @@
 export const pages = ['home', 'about', 'services', 'venues', 'reviews', 'contacts', 'booking', 'privacy'];
 export const filenames = {home:'index.html',about:'about.html',services:'services.html',venues:'venues.html',reviews:'reviews.html',contacts:'contacts.html',booking:'booking.html',privacy:'privacy.html'};
-const version = '20260914a';
+const version = '20260914b';
 export const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[char]));
@@ -28,7 +28,7 @@ function optionalImage(src, alt, className, caption = '', eager = false) {
 
 const pageLink = (page, text, className='line-link') => `<a class="${className}" href="${filenames[page]}"><span>${esc(text)}</span><b aria-hidden="true">↗</b></a>`;
 const sectionHeading = (label, title, link='') => `<header class="section-heading"><div><p class="eyebrow">${esc(label)}</p><h2>${esc(title)}</h2></div>${link}</header>`;
-const facts = c => `<div class="fact-rotator" aria-label="${esc(c.ui.factsLabel)}"><div class="fact-slides">${c.home.stats.map((stat,i)=>`<div class="fact-slide ${i===0?'is-active':''}" ${i?'aria-hidden="true"':''}><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}</div><div class="fact-controls">${c.home.stats.map((stat,i)=>`<button type="button" class="fact-dot ${i===0?'is-active':''}" data-fact="${i}" aria-label="${esc(stat.value+' '+stat.label)}" aria-pressed="${i===0}"></button>`).join('')}<button class="fact-pause" type="button" aria-label="${esc(c.ui.pauseFacts)}" data-play-label="${esc(c.ui.playFacts)}" data-pause-label="${esc(c.ui.pauseFacts)}"><span aria-hidden="true">Ⅱ</span></button></div></div>`;
+const facts = c => `<div class="fact-rotator" aria-label="${esc(c.ui.factsLabel)}"><div class="fact-slides">${c.home.stats.map((stat,i)=>`<div class="fact-slide ${i===0?'is-active':''}" ${i?'aria-hidden="true"':''}><strong>${esc(stat.value)}</strong><span>${esc(stat.label)}</span></div>`).join('')}</div></div>`;
 function hero(c) {
   return `<section class="hero"><div class="wrap hero-grid ${c.home.image?'with-media':''}"><div class="hero-copy"><p class="eyebrow">${esc(c.home.eyebrow)}</p><h1>${esc(c.home.title)}<em>${esc(c.home.titleAccent)}</em></h1><p class="hero-lead">${esc(c.home.text)}</p><div class="actions">${requestLink(c.ui.contact)}</div></div>${c.home.image?`<div class="hero-visual has-photo">${optionalImage(c.home.image,c.home.imageAlt,'hero-photo','',true)}</div>`:''}</div></section><div class="wrap facts-wrap">${facts(c)}</div>`;
 }
